@@ -1,0 +1,43 @@
+# Install dependencies
+(base) [dvasquez@static-201-245-190-17 ds4aExCase4]$ ssh -i ../ds4a/case_students/week3/AWS_setup/ds4a_live.pem ec2-user@ec2-18-216-36-64.us-east-2.compute.amazonaws.com
+[ec2-user@ip-172-31-28-197 ~]$ sudo yum install postgresql libpq-dev postgresql-client postgresql-client-common
+[ec2-user@ip-172-31-28-197 ~]$ sudo yum install python36
+[ec2-user@ip-172-31-28-197 ~]$ curl -O https://bootstrap.pypa.io/get-pip.py
+[ec2-user@ip-172-31-28-197 ~]$ python3 get-pip.py --user
+[ec2-user@ip-172-31-28-197 ~]$ sudo yum install git
+
+# create database and table
+(base) [dvasquez@static-201-245-190-17 ds4aExCase4]$ cat ../ds4a/case_students/week3/case_12.3_student/super_secret.txt
+(base) [dvasquez@static-201-245-190-17 ds4aExCase4]$ psql -h nps-demo-instance.c00ffroavtsz.us-east-2.rds.amazonaws.com -U postgres
+Password for user postgres: 
+psql (10.5, server 10.6)
+SSL connection (protocol: TLSv1.2, cipher: ECDHE-RSA-AES256-GCM-SHA384, bits: 256, compression: off)
+Type "help" for help.
+postgres=> create database strategy;
+CREATE DATABASE
+postgres=> grant all privileges on database strategy to nps_demo_user;
+GRANT
+postgres=> \q
+(base) [dvasquez@static-201-245-190-17 ds4aExCase4]$ psql -h nps-demo-instance.c00ffroavtsz.us-east-2.rds.amazonaws.com -U nps_demo_user -d strategy
+Password for user nps_demo_user: 
+psql (10.5, server 10.6)
+SSL connection (protocol: TLSv1.2, cipher: ECDHE-RSA-AES256-GCM-SHA384, bits: 256, compression: off)
+Type "help" for help.
+strategy=> create table trades ("Number" integer,"Trade type" varchar(250),"Entry time" varchar(250),"Exposure" varchar(250),"Entry balance" float,"Exit balance" float,"Profit" float,"Pnl (incl fees)" float,"Exchange" varchar(250),"Margin" float,"BTC Price" float);
+CREATE TABLE
+strategy=> \q
+(base) [dvasquez@static-201-245-190-17 ds4aExCase4]$ psql -h nps-demo-instance.c00ffroavtsz.us-east-2.rds.amazonaws.com -U nps_demo_user -d strategy -c "\copy trades from 'aggr.csv' with (format csv, header true, delimiter ',');"
+Password for user nps_demo_user: 
+COPY 3481
+strategy=> select count(*) from trades;
+ count 
+-------
+  3481
+(1 row)
+
+# set env variables
+[ec2-user@ip-172-31-28-197 ~]$ vim ~/.bashrc
+# DB_USER=“XXX”
+# DB_USER_PASSWORD=“XXX”
+# DB_HOST=“XXX.us-east-2.rds.amazonaws.com”
+# DB_APP_PYTHON=“strategy”

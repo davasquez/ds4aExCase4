@@ -4,8 +4,20 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
 import dash_table
+from sqlalchemy import create_engine
 
-df = pd.read_csv('aggr.csv', parse_dates=['Entry time'])
+DB_USER="nps_demo_user"
+DB_USER_PASSWORD="whatever"
+DB_HOST="nps-demo-instance.c00ffroavtsz.us-east-2.rds.amazonaws.com"
+DB_APP_PYTHON="strategy"
+connect = 'postgresql://' + DB_USER + ':' + DB_USER_PASSWORD + '@' + DB_HOST + ':' + '5432' + '/' + DB_APP_PYTHON
+
+engine = create_engine(connect)
+df = pd.read_sql("SELECT * from trades", engine.connect(), parse_dates=('Entry time'))
+
+# Load with csv
+#df = pd.read_csv('aggr.csv', parse_dates=['Entry time'])
+
 df['year_month'] = df.apply(lambda row: row['Entry time'].strftime("%Y-%m"), axis=1)
 df['Entry time date'] = pd.to_datetime(df['Entry time'].map(lambda x: "{}-{}-{}".format(x.year, x.month, x.day)))
 
@@ -310,4 +322,4 @@ def update_table(exchange_value, margin_value, start_date, end_date):
     return dff.to_dict('records')
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=True, host='0.0.0.0')
